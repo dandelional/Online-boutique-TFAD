@@ -21,10 +21,16 @@ import json
 import numpy as np
 
 import torch
-from pytorch_lightning.utilities.parsing import str_to_bool
+# from pytorch_lightning.utilities.parsing import str_to_bool
 
 import tfad
 
+def str_to_bool(val):
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, str):
+        return val.lower() in ("yes", "true", "t", "1")
+    raise ValueError(f"Invalid value for boolean: {val}")
 
 def parse_arguments():
 
@@ -67,7 +73,8 @@ def main(
 
     # Benchmark datasets to consider
     # benchmarks = ["nasa", "smd", "swat", "yahoo"]
-    benchmarks = ["swat", "yahoo"]
+    # benchmarks = ["swat", "yahoo", "nasa", "smd", "kpi"]
+    benchmarks = ["swat", "yahoo", "kpi"]
     if not run_swat:
         benchmarks.remove("swat")
     if not run_yahoo:
@@ -79,22 +86,35 @@ def main(
 
     if download_data:
         yahoo_path = yahoo_path.expanduser()
-        tfad.datasets.download(
-            data_dir=data_dir,
-            benchmarks=benchmarks,
-            yahoo_path=yahoo_path,
-        )
+        try:
+            print("Starting data download...")
+            print(f"Benchmarks selected for download: {benchmarks}")
+            tfad.datasets.download(
+                data_dir=data_dir,
+                benchmarks=benchmarks,
+                yahoo_path=yahoo_path,
+            )
+            print("Data download completed.")
+        except Exception as e:
+            print(f"Data download failed: {e}")
+            
+        # tfad.datasets.download(
+        #     data_dir=data_dir,
+        #     benchmarks=benchmarks,
+        #     yahoo_path=yahoo_path,
+        # )
 
     # Hyperparameter configurations
     hparams_files = [file for file in os.listdir(hparams_dir) if (file.endswith(".json"))]
     hparams_files.sort()
     # Keep only some hyperparameters
     # hparams_files = hparams_files[:2]
-    # hparams_files = ['smd-01.json']
+    # hparams_files = ['kpi-unsup-01.json']
 
     for file in hparams_files:
         # file=hparams_files[-1]
-        if not any([file.startswith(bmk) for bmk in benchmarks]):
+        # if not any([file.startswith(bmk) for bmk in benchmarks]):
+        if not any([bmk in file for bmk in benchmarks]):
             continue
 
         print(f"\n Executing hparams: \n {file} \n")
@@ -103,7 +123,8 @@ def main(
 
         for trail_i in range(number_of_trials):
             # Identify corresponding benckmark dataset
-            bmk = benchmarks[np.where([file.startswith(bmk) for bmk in benchmarks])[0][0]]
+            # bmk = benchmarks[np.where([file.startswith(bmk) for bmk in benchmarks])[0][0]]
+            bmk = benchmarks[np.where([bmk in file for bmk in benchmarks])[0][0]]
 
             # Modify hyperparameters
             hparams.update(

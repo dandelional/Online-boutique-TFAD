@@ -1,0 +1,77 @@
+classification_loss: !!python/object:torch.nn.modules.loss.BCELoss
+  _backward_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  _buffers: !!python/object/apply:collections.OrderedDict
+  - - - weight
+      - null
+  _forward_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  _forward_pre_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  _is_full_backward_hook: null
+  _load_state_dict_post_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  _load_state_dict_pre_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  _modules: !!python/object/apply:collections.OrderedDict
+  - []
+  _non_persistent_buffers_set: !!set {}
+  _parameters: !!python/object/apply:collections.OrderedDict
+  - []
+  _state_dict_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  reduction: mean
+  training: true
+classifier_threshold: 0.5
+coe_rate: 1.5
+distance: !!python/object:tfad.model.distances.LpDistance
+  _backward_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  _buffers: !!python/object/apply:collections.OrderedDict
+  - []
+  _forward_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  _forward_pre_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  _is_full_backward_hook: null
+  _load_state_dict_post_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  _load_state_dict_pre_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  _modules: !!python/object/apply:collections.OrderedDict
+  - []
+  _non_persistent_buffers_set: !!set {}
+  _parameters: !!python/object/apply:collections.OrderedDict
+  - []
+  _state_dict_hooks: !!python/object/apply:collections.OrderedDict
+  - []
+  dim: 1
+  eps: 1.0e-10
+  keepdim: true
+  p: 2
+  training: true
+embedding_rep_dim: 150
+fft_noise_rate: 0.0
+fft_sea_rate: 0.0
+hp_lamb: 6400
+learning_rate: 2.0e-05
+max_windows_unfold_batch: 5000
+mixup_rate: 0.5
+normalize_embedding: true
+rate_rn: 0.0
+slow_slop: 0.25
+stride_rolling_val_test: 1
+suspect_window_length: 1
+tcn_kernel_size: 7
+tcn_layers: 5
+tcn_maxpool_out_channels: 8
+tcn_out_channels: 16
+test_labels_adj: true
+test_labels_adj_fun: &id001 !!python/name:tfad.utils.donut_metrics.adjust_predicts_donut ''
+threshold_grid_length_test: 0.05
+threshold_grid_length_val: 0.1
+ts_channels: 38
+val_labels_adj: true
+val_labels_adj_fun: *id001
+weight_fft_branch: 0.001
+window_length: 400

@@ -491,6 +491,8 @@ class TFAD(pl.LightningModule):
             pred: Tensor with the estimated probability of each timestep being anomalous. Shape (batch_size, time)
         """
 
+        self.hparams.window_length = 10
+
         assert 0 <= threshold_prob_vote <= 1
 
         if stride is None:

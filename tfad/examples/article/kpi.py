@@ -59,10 +59,10 @@ def kpi_inject_anomalies(
             raise Exception
         else:
             anom_transform = tr.LocalOutlier(
-                area_radius=2000,
+                area_radius=20, # 2000
                 num_spikes=ratio_injected_spikes,
-                spike_multiplier_range=(1.0, 4.0),
-                direction_options=["increase"],
+                spike_multiplier_range=(0.25, 4.0), # (1.0, 4.0)
+                direction_options=["both"], # increase
             )
             ts_transform = ts_transform + anom_transform
 
@@ -94,7 +94,7 @@ def kpi_pipeline(
     injection_method: str = ["None", "local_outliers"][-1],
     ratio_injected_spikes: float = None,
     ## For DataLoader
-    window_length: int = 2000,
+    window_length: int = 20,
     suspect_window_length: int = 50,
     validation_portion: float = 0.3,
     train_split_method: str = "past_future_with_warmup",
@@ -296,7 +296,7 @@ def kpi_pipeline(
     model = TFAD.load_from_checkpoint(ckpt_path)
 
     # Metrics on validation and test data #
-    evaluation_result = trainer.test()
+    evaluation_result = trainer.test(model=model, datamodule=data_module)
     evaluation_result = evaluation_result[0]
 
     # Save evaluation results

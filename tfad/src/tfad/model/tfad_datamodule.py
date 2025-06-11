@@ -64,16 +64,17 @@ class TFADDataModule(pl.LightningDataModule):
         self.hparams.update(hparams)
 
         self.datasets = {}
-        assert (
-            not train_ts_dataset.nan_ts_values
-        ), "TimeSeries in train_ts_dataset must not have nan values."
-        self.datasets["train"] = CroppedTimeSeriesDatasetTorch(
-            ts_dataset=train_ts_dataset,
-            window_length=self.hparams.window_length,
-            suspect_window_length=self.hparams.suspect_window_length,
-            label_reduction_method=self.hparams.label_reduction_method,
-            num_crops_per_series=self.hparams.num_crops_per_series,
-        )
+        if train_ts_dataset is not None:
+            assert (
+                not train_ts_dataset.nan_ts_values
+            ), "TimeSeries in train_ts_dataset must not have nan values."
+            self.datasets["train"] = CroppedTimeSeriesDatasetTorch(
+                ts_dataset=train_ts_dataset,
+                window_length=self.hparams.window_length,
+                suspect_window_length=self.hparams.suspect_window_length,
+                label_reduction_method=self.hparams.label_reduction_method,
+                num_crops_per_series=self.hparams.num_crops_per_series,
+            )
 
         if validation_ts_dataset is not None:
             assert (

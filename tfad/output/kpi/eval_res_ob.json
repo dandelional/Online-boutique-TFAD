@@ -1,0 +1,12 @@
+{
+    "classifier_threshold": 0.84,
+    "test_f1": 0.2,
+    "test_f2": 0.3125,
+    "test_f0.5": 0.14705882352941177,
+    "test_precision": 0.125,
+    "test_recall": 0.5,
+    "test_TN": 78.0,
+    "test_FN": 2.0,
+    "test_TP": 2.0,
+    "test_FP": 14.0
+}

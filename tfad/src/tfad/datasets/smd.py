@@ -41,7 +41,7 @@ def smd(path: Union[PosixPath, str], _for_testing=False, *args, **kwargs) -> Tim
     train_files.sort()
     test_files = [fn for fn in os.listdir(path / "test") if fn.endswith(".txt")]
     test_files.sort()
-    test_label_files = [fn for fn in os.listdir(path / "test") if fn.endswith(".txt")]
+    test_label_files = [fn for fn in os.listdir(path / "test_label") if fn.endswith(".txt")]
     test_label_files.sort()
 
     # Check that train and test files have the same names

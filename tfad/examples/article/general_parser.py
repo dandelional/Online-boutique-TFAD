@@ -17,10 +17,14 @@ import argparse
 
 import torch
 
-from pytorch_lightning.utilities.parsing import str_to_bool
-
 from tfad.utils import save_args
 
+def str_to_bool(val):
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, str):
+        return val.lower() in ("yes", "true", "t", "1")
+    raise ValueError(f"Invalid value for boolean: {val}")
 
 def get_general_parser():
     parser = argparse.ArgumentParser()

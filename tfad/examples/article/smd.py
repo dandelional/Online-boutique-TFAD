@@ -68,12 +68,18 @@ def smd_pipeline(
     ## For trainer
     epochs: int = 500,
     gpus: int = 1 if torch.cuda.is_available() else 0,
+    # Validation
+    limit_val_batches: float = 1.0,
+    num_sanity_val_steps: int = 0,
     ## For injection method
     injection_method: str = ["None", "local_outliers"][-1],
     ratio_injected_spikes: float = None,
     ## For DataLoader
     window_length: int = 500,
     suspect_window_length: int = 10,
+    # Validation
+    validation_portion: float = 0.3,
+    train_split_method: str = "past_future_with_warmup",
     num_series_in_train_batch: int = 8,
     num_crops_per_series: int = 16,
     num_workers_loader: int = 0,
@@ -95,6 +101,7 @@ def smd_pipeline(
     # hpars for optimizer
     learning_rate: float = 1e-4,
     # hpars for validation and test
+    check_val_every_n_epoch: int = 25,
     stride_roll_pred_val_test: int = 5,
     test_labels_adj: bool = True,
     max_windows_unfold_batch: Optional[int] = 5000,
@@ -131,6 +138,18 @@ def smd_pipeline(
     assert all(shape[1] == ts_channels for shape in train_set.shape)
     assert all(shape[1] == ts_channels for shape in test_set.shape)
 
+    # Split dataset
+    train_set, validation_set, _ = tfad.ts.split_train_val_test(
+        data=train_set,
+        val_portion=validation_portion,
+        test_portion=0.0,
+        split_method=train_split_method,
+        split_warmup_length=window_length - suspect_window_length
+        if train_split_method == "past_future_with_warmup"
+        else None,
+        verbose=False,
+    )
+
     #### inject anomalies on training set ###
     print("Injecting anomalies on training set...")
     train_set_transformed = smd_inject_anomalies(
@@ -145,6 +164,7 @@ def smd_pipeline(
         # Assign test data to validation set, but it will not be used
         # (no validation steps are run during training below)
         validation_ts_dataset=test_set,
+        # validation_ts_dataset=validation_set,
         test_ts_dataset=test_set,
         window_length=window_length,
         suspect_window_length=suspect_window_length,
@@ -204,13 +224,22 @@ def smd_pipeline(
 
     logger = TensorBoardLogger(save_dir=log_dir, name=exp_name)
 
-    # Checkpoint callback, monitoring 'train_loss_step'
+    # # Checkpoint callback, monitoring 'train_loss_step'
+    # checkpoint_cb = ModelCheckpoint(
+    #     monitor="train_loss_step",
+    #     dirpath=model_dir,
+    #     filename="tfad-model-" + exp_name + "-{epoch:02d}-{train_loss_step:.4f}",
+    #     save_top_k=1,
+    #     mode="min",
+    # )
+
+    # Checkpoint callback, monitoring 'val_f1'
     checkpoint_cb = ModelCheckpoint(
-        monitor="train_loss_step",
+        monitor="val_f1",
         dirpath=model_dir,
-        filename="tfad-model-" + exp_name + "-{epoch:02d}-{train_loss_step:.4f}",
+        filename="tfad-model-" + exp_name + "-{epoch:02d}-{val_f1:.4f}",
         save_top_k=1,
-        mode="min",
+        mode="max",
     )
 
     # Set training type in model and data module
@@ -220,9 +249,12 @@ def smd_pipeline(
         logger=logger,
         min_epochs=epochs,
         max_epochs=epochs,
-        limit_val_batches=0,  # no validation stages, as there is no data
-        num_sanity_val_steps=0,
-        check_val_every_n_epoch=1,  # effectively no validation check since limit_val_batches=0
+        # limit_val_batches=0,  # no validation stages, as there is no data
+        # num_sanity_val_steps=0,
+        # check_val_every_n_epoch=1,  # effectively no validation check since limit_val_batches=0
+        limit_val_batches=limit_val_batches,
+        num_sanity_val_steps=num_sanity_val_steps,
+        check_val_every_n_epoch=check_val_every_n_epoch,
         callbacks=[checkpoint_cb],
         # callbacks=[checkpoint_cb, earlystop_cb, lr_logger],
         auto_lr_find=False,
@@ -255,7 +287,7 @@ def smd_pipeline(
     model = TFAD.load_from_checkpoint(ckpt_path)
 
     # Metrics on validation and test data #
-    evaluation_result = trainer.test()
+    evaluation_result = trainer.test(model=model, datamodule=data_module)
     evaluation_result = evaluation_result[0]
 
     # Save evaluation results
