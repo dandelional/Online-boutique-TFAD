@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package hipstershop;
+
+option go_package = "github.com/GoogleCloudPlatform/microservices-demo/src/ratingservice/genproto";
+
+service RatingService {
+  rpc SubmitRating(SubmitRatingRequest) returns (SubmitRatingResponse);
+  rpc GetProductRating(GetProductRatingRequest) returns (GetProductRatingResponse);
+  rpc GetUserRating(GetUserRatingRequest) returns (GetUserRatingResponse);
+}
+
+message SubmitRatingRequest {
+  string product_id = 1;
+  string user_id = 2;
+  int32 score = 3;
+  string comment = 4;
+}
+
+message SubmitRatingResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetProductRatingRequest {
+  string product_id = 1;
+}
+
+message GetProductRatingResponse {
+  string product_id = 1;
+  float average_score = 2;
+  int32 total_ratings = 3;
+  repeated Rating ratings = 4;
+}
+
+message GetUserRatingRequest {
+  string product_id = 1;
+  string user_id = 2;
+}
+
+message GetUserRatingResponse {
+  Rating rating = 1;
+  bool has_rating = 2;
+}
+
+message Rating {
+  string product_id = 1;
+  string user_id = 2;
+  int32 score = 3;
+  string comment = 4;
+  int64 timestamp = 5;
+}

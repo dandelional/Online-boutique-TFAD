@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: frontend-monitor
+  namespace: monitoring-helm
+  labels:
+    release: onlineboutique-monitor
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  namespaceSelector:
+    matchNames:
+      - online-boutique
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

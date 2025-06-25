@@ -1,0 +1,149 @@
+<!--
+ Copyright 2020 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+{{ define "product" }}
+{{ template "header" . }}
+<div {{ with $.platform_css }} class="{{.}}" {{ end }}>
+  <span class="platform-flag">
+    {{$.platform_name}}
+  </span>
+</div>
+
+<main role="main">
+  <div class="h-product container">
+    <div class="row">
+      <div class="col-md-6">
+        <img class="product-image" alt="" src="{{ $.baseUrl }}{{$.product.Item.Picture}}" />
+      </div>
+      <div class="product-info col-md-5">
+        <div class="product-wrapper">
+
+          <h2>{{ $.product.Item.Name }}</h2>
+          <p class="product-price">{{ renderMoney $.product.Price }}</p>
+          <p>{{ $.product.Item.Description }}</p>
+
+          {{ if $.packagingInfo }}
+          <div class="product-packaging">
+            <h3>Packaging</h3>
+            <span>
+              Weight: {{ if $.packagingInfo.Weight }}{{ $.packagingInfo.Weight }}lb{{ else }}n/a{{ end }}
+            </span>
+            <span>
+              Width: {{ if $.packagingInfo.Width }}{{ $.packagingInfo.Width }}cm{{ else }}n/a{{ end }}
+            </span>
+            <span>
+              Height: {{ if $.packagingInfo.Height }}{{ $.packagingInfo.Height }}cm{{ else }}n/a{{ end }}
+            </span>
+            <span>
+              Depth: {{ if $.packagingInfo.Depth }}{{ $.packagingInfo.Depth }}cm{{ else }}n/a{{ end }}
+            </span>
+          </div>
+          {{ end }}
+
+          <!-- 在现有的产品信息后添加评分区域 -->
+          <div class="rating-section"
+            style="margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+            <h3>产品评分</h3>
+            {{if .product_rating}}
+            <div class="rating-summary" style="margin-bottom: 20px;">
+              <div class="average-rating" style="display: flex; align-items: center; gap: 10px;">
+                <span class="rating-stars" style="color: #ffa500; font-size: 18px;">
+                  {{range $i := until 5}}
+                  {{if lt $i (int $.product_rating.AverageScore)}}★{{else}}☆{{end}}
+                  {{end}}
+                </span>
+                <span class="rating-score">{{printf "%.1f" .product_rating.AverageScore}}</span>
+                <span class="rating-count">({{.product_rating.TotalRatings}} 个评分)</span>
+              </div>
+            </div>
+            {{else}}
+            <p>暂无评分</p>
+            {{end}}
+
+            <!-- 用户评分表单 -->
+            <div class="user-rating-form"
+              style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-radius: 5px;">
+              {{if .user_rating.HasRating}}
+              <h4>您的评分</h4>
+              <div class="existing-rating">
+                <span class="rating-stars" style="color: #ffa500;">
+                  {{range $i := until 5}}
+                  {{if lt $i (int .user_rating.Rating.Score)}}★{{else}}☆{{end}}
+                  {{end}}
+                </span>
+                <p>{{.user_rating.Rating.Comment}}</p>
+              </div>
+              {{end}}
+
+              <h4>{{if .user_rating.HasRating}}更新{{else}}添加{{end}}评分</h4>
+              <form action="{{ $.baseUrl }}/rating/submit" method="post">
+                <input type="hidden" name="product_id" value="{{.product.Item.Id}}">
+
+                <div style="margin: 10px 0;">
+                  <label>评分:</label>
+                  <div class="star-rating">
+                    {{range $i := until 5}}
+                    <input type="radio" name="score" value="{{add $i 1}}" id="star{{add $i 1}}" {{if
+                      $.user_rating.HasRating}} {{if eq (add $i 1) (int $.user_rating.Rating.Score)}}checked{{end}}
+                      {{end}}>
+                    <label for="star{{add $i 1}}" style="color: #ffa500; font-size: 20px; cursor: pointer;">★</label>
+                    {{end}}
+                  </div>
+                </div>
+
+                <div style="margin: 10px 0;">
+                  <label for="comment">评论 (可选):</label><br>
+                  <textarea name="comment" id="comment" rows="3"
+                    cols="50">{{if .user_rating.HasRating}}{{.user_rating.Rating.Comment}}{{end}}</textarea>
+                </div>
+
+                <button type="submit"
+                  style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">提交评分</button>
+              </form>
+            </div>
+          </div>
+
+          <form method="POST" action="{{ $.baseUrl }}/cart">
+            <input type="hidden" name="product_id" value="{{$.product.Item.Id}}" />
+            <div class="product-quantity-dropdown">
+              <select name="quantity" id="quantity">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>10</option>
+              </select>
+              <img src="{{ $.baseUrl }}/static/icons/Hipster_DownArrow.svg" alt="">
+            </div>
+            <button type="submit" class="cymbal-button-primary">Add To Cart</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    {{ if $.recommendations}}
+    {{ template "recommendations" $ }}
+    {{ end }}
+  </div>
+  <div class="ad">
+    {{ if $.ad }}{{ template "text_ad" $ }}{{ end }}
+  </div>
+
+</main>
+{{ template "footer" . }}
+{{ end }}
